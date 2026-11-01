@@ -224,3 +224,4 @@ class MarkdownViewer:
         # Remaining trailing text
         if pos < len(text):
             self.widget.insert("end", text[pos:], base_tag)
+
