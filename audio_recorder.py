@@ -206,3 +206,4 @@ class AudioRecorder:
         if not self.is_recording:
             return 0.0
         return max(0.0, time.time() - self.start_time)
+

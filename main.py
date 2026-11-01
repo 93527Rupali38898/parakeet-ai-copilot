@@ -8,6 +8,15 @@ Submission Date: November 2026
 
 import sys
 import argparse
+
+# Ensure standard UTF-8 console encoding on Windows
+if sys.platform.startswith("win"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 from gui import ParakeetDesktopApp, run_app
 
 

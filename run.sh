@@ -7,3 +7,4 @@ echo "  Launching Parakeet AI Desktop Prototype"
 echo "  Candidate: Rupali Goyal"
 echo "========================================================"
 python3 main.py
+

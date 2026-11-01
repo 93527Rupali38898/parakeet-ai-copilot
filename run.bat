@@ -12,3 +12,4 @@ if errorlevel 1 (
     echo An error occurred while launching. Press any key to exit.
     pause
 )
+

@@ -1,8 +1,8 @@
 """
 Desktop GUI for Parakeet AI Prototype.
 Built with CustomTkinter for a modern, sleek interface inspired by Parakeet AI.
-Provides Start/Stop microphone recording, live audio visualizer, Whisper STT,
-and progressive streaming LLM answer generation.
+Features rich real-time Markdown rendering, Start/Stop microphone recording,
+live audio level visualizer, Whisper STT, and progressive streaming LLM answer generation.
 
 Author: Rupali Goyal
 """
@@ -16,10 +16,11 @@ from typing import Optional, List, Dict
 import customtkinter as ctk
 
 from audio_recorder import AudioRecorder, AudioRecorderError
-from stt_engine import STTEngine, SAMPLE_QUESTIONS
-from llm_engine import LLMEngine, OllamaBackend
+from stt_engine import STTEngine
+from llm_engine import LLMEngine
+from markdown_viewer import MarkdownViewer
 
-# Configure CustomTkinter aesthetic
+# Modern Appearance
 ctk.set_appearance_mode("Dark")
 ctk.set_default_color_theme("green")
 
@@ -29,9 +30,9 @@ class ParakeetDesktopApp(ctk.CTk):
         super().__init__()
 
         # Window setup
-        self.title("Parakeet AI — Desktop Prototype")
-        self.geometry("900x780")
-        self.minsize(780, 680)
+        self.title("Parakeet AI — Desktop Copilot Prototype")
+        self.geometry("960x840")
+        self.minsize(820, 700)
 
         # Core Engines
         self.recorder = AudioRecorder(sample_rate=16000)
@@ -39,11 +40,11 @@ class ParakeetDesktopApp(ctk.CTk):
         self.llm = LLMEngine(backend_type="offline")
 
         # Application state
-        self._sample_index = 0
         self._poll_timer_id = None
         self._stream_token_count = 0
         self._stream_start_time = 0.0
         self._ui_queue = queue.Queue()
+        self._view_raw_markdown = False
 
         # Build UI layout
         self._setup_ui()
@@ -51,7 +52,7 @@ class ParakeetDesktopApp(ctk.CTk):
         # Start UI event polling loop
         self._process_ui_queue()
 
-        # Preload STT model in background so UI opens instantly
+        # Preload STT model in background
         threading.Thread(target=self._preload_stt, daemon=True).start()
 
         # Populate audio devices & Ollama status in background
@@ -61,7 +62,7 @@ class ParakeetDesktopApp(ctk.CTk):
         """Preloads faster-whisper model into memory silently."""
         try:
             self.stt.load_model()
-            self._ui_queue.put(lambda: self._set_status("Speech engine ready (faster-whisper tiny)"))
+            self._ui_queue.put(lambda: self._set_status("Speech engine ready (faster-whisper tiny • int8)"))
         except Exception as e:
             self._ui_queue.put(lambda: self._set_status(f"Speech engine initialization warning: {e}"))
 
@@ -73,7 +74,7 @@ class ParakeetDesktopApp(ctk.CTk):
 
         def update():
             # Update Mic selector
-            device_names = [f"[{idx}] {name[:35]}" for idx, name in devices]
+            device_names = [f"[{idx}] {name[:32]}" for idx, name in devices]
             if not device_names:
                 device_names = ["Default System Microphone"]
             self.mic_dropdown.configure(values=device_names)
@@ -83,7 +84,7 @@ class ParakeetDesktopApp(ctk.CTk):
             if ollama_running:
                 self.backend_dropdown.set("Ollama (Local Daemon)")
                 self.llm_status_badge.configure(
-                    text="● Ollama Connected",
+                    text="● Ollama Active",
                     text_color="#10b981"
                 )
                 if ollama_models:
@@ -92,8 +93,8 @@ class ParakeetDesktopApp(ctk.CTk):
             else:
                 self.backend_dropdown.set("Offline Fast Engine (Instant)")
                 self.llm_status_badge.configure(
-                    text="○ Ollama Offline (Using Fast Local Engine)",
-                    text_color="#f59e0b"
+                    text="○ Local Fast Engine",
+                    text_color="#38bdf8"
                 )
 
         self._ui_queue.put(update)
@@ -101,35 +102,50 @@ class ParakeetDesktopApp(ctk.CTk):
     def _setup_ui(self):
         """Constructs the sleek Parakeet AI desktop interface."""
         # Top Header Frame
-        header = ctk.CTkFrame(self, corner_radius=12, fg_color=("#e2e8f0", "#18181b"))
-        header.pack(fill="x", padx=16, pady=(14, 8))
+        header = ctk.CTkFrame(self, corner_radius=12, fg_color=("#e2e8f0", "#0f172a"))
+        header.pack(fill="x", padx=16, pady=(12, 6))
 
-        # Title & Subtitle
+        # Title & Subtitle Box
         title_box = ctk.CTkFrame(header, fg_color="transparent")
-        title_box.pack(side="left", padx=16, pady=12)
+        title_box.pack(side="left", padx=16, pady=10)
+
+        brand_row = ctk.CTkFrame(title_box, fg_color="transparent")
+        brand_row.pack(anchor="w")
 
         title_lbl = ctk.CTkLabel(
-            title_box,
-            text="🦜 Parakeet AI",
+            brand_row,
+            text="🦜 PARAKEET AI",
             font=ctk.CTkFont(size=22, weight="bold")
         )
-        title_lbl.pack(anchor="w")
+        title_lbl.pack(side="left")
+
+        tag_badge = ctk.CTkLabel(
+            brand_row,
+            text="STUDIO DESKTOP",
+            font=ctk.CTkFont(size=10, weight="bold"),
+            fg_color="#064e3b",
+            text_color="#34d399",
+            corner_radius=6,
+            padx=8,
+            pady=2
+        )
+        tag_badge.pack(side="left", padx=10)
 
         subtitle_lbl = ctk.CTkLabel(
             title_box,
-            text="Desktop Prototype • Local Speech-to-Text & Progressive AI Answer",
-            font=ctk.CTkFont(size=12),
+            text="Local Speech-to-Text • Progressive LLM Streaming • Intelligent Answer Copilot",
+            font=ctk.CTkFont(size=11),
             text_color=("gray40", "gray65")
         )
-        subtitle_lbl.pack(anchor="w")
+        subtitle_lbl.pack(anchor="w", pady=(2, 0))
 
         # Top Right Controls (Theme & System Badges)
         right_header = ctk.CTkFrame(header, fg_color="transparent")
-        right_header.pack(side="right", padx=16, pady=12)
+        right_header.pack(side="right", padx=16, pady=10)
 
         self.llm_status_badge = ctk.CTkLabel(
             right_header,
-            text="Checking local LLM...",
+            text="Detecting local engines...",
             font=ctk.CTkFont(size=11, weight="bold"),
             text_color="gray60"
         )
@@ -137,31 +153,31 @@ class ParakeetDesktopApp(ctk.CTk):
 
         theme_switch = ctk.CTkSwitch(
             right_header,
-            text="Dark Mode",
+            text="Dark Theme",
             command=self._toggle_theme,
             font=ctk.CTkFont(size=11)
         )
         theme_switch.select()
         theme_switch.pack(side="top", anchor="e")
 
-        # Main Scrollable / Stacked Content
+        # Main Layout Frame
         main_frame = ctk.CTkFrame(self, fg_color="transparent")
         main_frame.pack(fill="both", expand=True, padx=16, pady=4)
 
         # -------------------------------------------------------------
         # CARD 1: Audio Capture & Transcription Section
         # -------------------------------------------------------------
-        audio_card = ctk.CTkFrame(main_frame, corner_radius=10)
-        audio_card.pack(fill="x", pady=6)
+        audio_card = ctk.CTkFrame(main_frame, corner_radius=12, fg_color=("#ffffff", "#1e293b"))
+        audio_card.pack(fill="x", pady=5)
 
-        # Card Title Bar with Controls
+        # Card Title Bar with Device Selector
         bar1 = ctk.CTkFrame(audio_card, fg_color="transparent")
-        bar1.pack(fill="x", padx=14, pady=(12, 6))
+        bar1.pack(fill="x", padx=14, pady=(10, 4))
 
         sec1_title = ctk.CTkLabel(
             bar1,
-            text="🎙️ Microphone Audio Capture",
-            font=ctk.CTkFont(size=15, weight="bold")
+            text="🎙️ Microphone Voice Input",
+            font=ctk.CTkFont(size=14, weight="bold")
         )
         sec1_title.pack(side="left")
 
@@ -169,18 +185,18 @@ class ParakeetDesktopApp(ctk.CTk):
         self.mic_dropdown = ctk.CTkOptionMenu(
             bar1,
             values=["Default Microphone"],
-            width=210,
+            width=220,
             height=28,
             font=ctk.CTkFont(size=11)
         )
         self.mic_dropdown.pack(side="right")
 
-        device_lbl = ctk.CTkLabel(bar1, text="Input:", font=ctk.CTkFont(size=11), text_color="gray60")
+        device_lbl = ctk.CTkLabel(bar1, text="Mic Device:", font=ctk.CTkFont(size=11), text_color="gray60")
         device_lbl.pack(side="right", padx=(0, 6))
 
-        # Big Buttons & Recording Visualizer Bar
+        # Recording Control Bar (Start, Stop, Live Waveform / Meter)
         btn_bar = ctk.CTkFrame(audio_card, fg_color="transparent")
-        btn_bar.pack(fill="x", padx=14, pady=6)
+        btn_bar.pack(fill="x", padx=14, pady=4)
 
         self.btn_start = ctk.CTkButton(
             btn_bar,
@@ -189,7 +205,7 @@ class ParakeetDesktopApp(ctk.CTk):
             fg_color="#10b981",
             hover_color="#059669",
             font=ctk.CTkFont(size=13, weight="bold"),
-            width=160,
+            width=165,
             height=36
         )
         self.btn_start.pack(side="left", padx=(0, 10))
@@ -202,12 +218,12 @@ class ParakeetDesktopApp(ctk.CTk):
             hover_color="#dc2626",
             font=ctk.CTkFont(size=13, weight="bold"),
             state="disabled",
-            width=160,
+            width=165,
             height=36
         )
         self.btn_stop.pack(side="left", padx=(0, 14))
 
-        # Recording timer and live volume bar
+        # Recording timer and live visualizer
         self.rec_status_lbl = ctk.CTkLabel(
             btn_bar,
             text="Idle • Ready",
@@ -216,36 +232,32 @@ class ParakeetDesktopApp(ctk.CTk):
         )
         self.rec_status_lbl.pack(side="left", padx=(0, 12))
 
-        self.volume_bar = ctk.CTkProgressBar(btn_bar, width=140, height=12)
+        self.volume_bar = ctk.CTkProgressBar(btn_bar, width=150, height=12)
         self.volume_bar.set(0.0)
         self.volume_bar.pack(side="left", padx=(0, 10))
 
-        # Transcription Output Area
-        transcription_header = ctk.CTkFrame(audio_card, fg_color="transparent")
-        transcription_header.pack(fill="x", padx=14, pady=(8, 2))
+        # Quick Example Chips Row
+        chip_bar = ctk.CTkFrame(audio_card, fg_color="transparent")
+        chip_bar.pack(fill="x", padx=14, pady=(6, 2))
 
         lbl_trans = ctk.CTkLabel(
-            transcription_header,
-            text="Transcribed Question / Prompt (Editable):",
+            chip_bar,
+            text="Transcribed Question / Prompt:",
             font=ctk.CTkFont(size=12, weight="bold")
         )
         lbl_trans.pack(side="left")
 
-        # Action pills
-        btn_sample = ctk.CTkButton(
-            transcription_header,
-            text="💡 Load Sample Question",
-            command=self._load_next_sample_question,
-            width=150,
-            height=24,
-            font=ctk.CTkFont(size=11),
-            fg_color=("gray85", "gray25"),
-            text_color=("gray10", "gray90")
-        )
-        btn_sample.pack(side="right")
+        # Quick preset buttons for instant testing
+        presets = [
+            ("🐍 Learn Python", "I want to start learning Python. What is the recommended roadmap and best beginner projects?"),
+            ("🤖 ML Concepts", "Can you explain the difference between supervised and unsupervised learning with practical examples?"),
+            ("🏗️ System Design", "What are microservices, and what are the main tradeoffs compared to a monolithic architecture?"),
+            ("🔍 Attention", "How does the self-attention mechanism work in a Transformer model?"),
+            ("🐞 Debug Bug", "Tell me about a challenging technical bug you encountered and how you systematically diagnosed it.")
+        ]
 
         btn_clear = ctk.CTkButton(
-            transcription_header,
+            chip_bar,
             text="🗑️ Clear",
             command=self._clear_transcription,
             width=65,
@@ -254,41 +266,52 @@ class ParakeetDesktopApp(ctk.CTk):
             fg_color=("gray85", "gray25"),
             text_color=("gray10", "gray90")
         )
-        btn_clear.pack(side="right", padx=6)
+        btn_clear.pack(side="right")
+
+        for label, text in reversed(presets):
+            b = ctk.CTkButton(
+                chip_bar,
+                text=label,
+                command=lambda t=text: self._set_prompt_text(t),
+                width=100,
+                height=24,
+                font=ctk.CTkFont(size=10),
+                fg_color=("gray85", "gray25"),
+                text_color=("gray10", "gray90")
+            )
+            b.pack(side="right", padx=3)
 
         # Text area for transcription
         self.txt_transcription = ctk.CTkTextbox(
             audio_card,
-            height=75,
+            height=68,
             font=ctk.CTkFont(family="Segoe UI", size=13),
             wrap="word"
         )
-        self.txt_transcription.pack(fill="x", padx=14, pady=(2, 12))
+        self.txt_transcription.pack(fill="x", padx=14, pady=(2, 10))
         self.txt_transcription.insert(
             "1.0",
-            "Click 'Start Recording' and speak your question into the microphone, "
-            "or click 'Load Sample Question' to test without speaking."
+            "I want to start learning Python. What is the recommended roadmap and best beginner projects?"
         )
 
         # -------------------------------------------------------------
-        # CARD 2: AI Answer Suggestion Section (Streaming)
+        # CARD 2: AI Answer Suggestion Section (Markdown Rendered)
         # -------------------------------------------------------------
-        ai_card = ctk.CTkFrame(main_frame, corner_radius=10)
-        ai_card.pack(fill="both", expand=True, pady=6)
+        ai_card = ctk.CTkFrame(main_frame, corner_radius=12, fg_color=("#ffffff", "#1e293b"))
+        ai_card.pack(fill="both", expand=True, pady=5)
 
-        # Controls row
+        # AI Action & Backend Selector Bar
         ai_controls = ctk.CTkFrame(ai_card, fg_color="transparent")
-        ai_controls.pack(fill="x", padx=14, pady=(12, 6))
+        ai_controls.pack(fill="x", padx=14, pady=(10, 4))
 
-        # Primary Suggest Answer Button
         self.btn_suggest = ctk.CTkButton(
             ai_controls,
             text="✨  Suggest Answer",
             command=self._on_suggest_answer,
-            fg_color="#3b82f6",
-            hover_color="#2563eb",
+            fg_color="#4f46e5",
+            hover_color="#4338ca",
             font=ctk.CTkFont(size=14, weight="bold"),
-            width=170,
+            width=180,
             height=36
         )
         self.btn_suggest.pack(side="left", padx=(0, 10))
@@ -324,7 +347,7 @@ class ParakeetDesktopApp(ctk.CTk):
         backend_lbl = ctk.CTkLabel(ai_controls, text="LLM:", font=ctk.CTkFont(size=11), text_color="gray60")
         backend_lbl.pack(side="right", padx=(0, 6))
 
-        # Model name selector
+        # Model selector dropdown
         self.model_dropdown = ctk.CTkOptionMenu(
             ai_controls,
             values=["llama3.2", "llama3.2:1b", "mistral", "phi3"],
@@ -334,13 +357,13 @@ class ParakeetDesktopApp(ctk.CTk):
         )
         self.model_dropdown.pack(side="right", padx=(0, 10))
 
-        # Answer Label & Copy
+        # Answer Title & Live Stats Bar
         answer_bar = ctk.CTkFrame(ai_card, fg_color="transparent")
-        answer_bar.pack(fill="x", padx=14, pady=(6, 2))
+        answer_bar.pack(fill="x", padx=14, pady=(4, 2))
 
         lbl_answer = ctk.CTkLabel(
             answer_bar,
-            text="AI Suggested Answer (Progressive Streaming):",
+            text="AI Suggested Answer (Progressive Markdown):",
             font=ctk.CTkFont(size=12, weight="bold")
         )
         lbl_answer.pack(side="left")
@@ -365,26 +388,57 @@ class ParakeetDesktopApp(ctk.CTk):
         )
         btn_copy.pack(side="right")
 
-        # Answer Rich Output Area (Progressive token streaming display)
-        self.txt_answer = ctk.CTkTextbox(
-            ai_card,
-            font=ctk.CTkFont(family="Consolas", size=13),
-            wrap="word"
+        self.btn_toggle_view = ctk.CTkButton(
+            answer_bar,
+            text="📖 Formatted View",
+            command=self._toggle_view_mode,
+            width=120,
+            height=24,
+            font=ctk.CTkFont(size=11),
+            fg_color=("gray85", "gray25"),
+            text_color=("gray10", "gray90")
         )
-        self.txt_answer.pack(fill="both", expand=True, padx=14, pady=(2, 12))
-        self.txt_answer.insert(
-            "1.0",
-            "Your AI response will stream here progressively token-by-token...\n\n"
-            "• Connect your microphone and click 'Start Recording'.\n"
-            "• Speak your question and click 'Stop Recording' to transcribe.\n"
-            "• Click 'Suggest Answer' to stream the local AI answer!"
+        self.btn_toggle_view.pack(side="right", padx=6)
+
+        # Rich Markdown Answer Display Widget
+        # Underlying tk.Text wrapped inside CTkFrame with native styling
+        text_container = ctk.CTkFrame(ai_card, corner_radius=8, fg_color=("#f8fafc", "#0f172a"))
+        text_container.pack(fill="both", expand=True, padx=14, pady=(2, 10))
+
+        scrollbar = tk.Scrollbar(text_container)
+        scrollbar.pack(side="right", fill="y")
+
+        self.native_text = tk.Text(
+            text_container,
+            wrap="word",
+            font=("Segoe UI", 12),
+            relief="flat",
+            borderwidth=0,
+            highlightthickness=0,
+            padx=14,
+            pady=12,
+            yscrollcommand=scrollbar.set
         )
+        self.native_text.pack(side="left", fill="both", expand=True)
+        scrollbar.config(command=self.native_text.yview)
+
+        # Attach Markdown viewer
+        self.markdown_viewer = MarkdownViewer(self.native_text, is_dark=True)
+        initial_markdown = (
+            "# Welcome to Parakeet AI Copilot\n\n"
+            "This prototype runs local Speech-to-Text and streaming local LLM generation.\n\n"
+            "## 🎙️ How to Use\n"
+            "1. **Record Audio**: Click `▶ Start Recording` and speak into your microphone, or choose a quick prompt above.\n"
+            "2. **Transcribe**: Click `⏹ Stop Recording` to transcribe audio with local Faster-Whisper.\n"
+            "3. **Suggest Answer**: Click `✨ Suggest Answer` to stream the AI response progressively with formatted Markdown!"
+        )
+        self.markdown_viewer.render(initial_markdown, streaming=False)
 
         # -------------------------------------------------------------
         # Bottom Status Bar & Credits
         # -------------------------------------------------------------
         footer = ctk.CTkFrame(self, height=28, fg_color="transparent")
-        footer.pack(fill="x", padx=18, pady=(2, 10))
+        footer.pack(fill="x", padx=18, pady=(2, 8))
 
         self.status_lbl = ctk.CTkLabel(
             footer,
@@ -396,7 +450,7 @@ class ParakeetDesktopApp(ctk.CTk):
 
         credits_lbl = ctk.CTkLabel(
             footer,
-            text="Candidate: Rupali Goyal • Lacritz Internship Assignment (Deadline: 04 Nov 2026)",
+            text="Author: Rupali Goyal • Lacritz Internship Assignment (Deadline: 04 Nov 2026)",
             font=ctk.CTkFont(size=11, weight="bold"),
             text_color=("gray40", "gray65")
         )
@@ -405,7 +459,29 @@ class ParakeetDesktopApp(ctk.CTk):
     def _toggle_theme(self):
         """Switches between dark and light appearance modes."""
         current = ctk.get_appearance_mode()
-        ctk.set_appearance_mode("Light" if current == "Dark" else "Dark")
+        is_dark = (current != "Dark")
+        ctk.set_appearance_mode("Dark" if is_dark else "Light")
+        self.markdown_viewer.set_theme(is_dark=is_dark)
+
+    def _toggle_view_mode(self):
+        """Toggles between formatted visual Markdown and raw Markdown text."""
+        self._view_raw_markdown = not self._view_raw_markdown
+        if self._view_raw_markdown:
+            self.btn_toggle_view.configure(text="📄 Raw View")
+            # Show raw text
+            self.native_text.configure(state="normal")
+            self.native_text.delete("1.0", "end")
+            self.native_text.insert("1.0", self.markdown_viewer.raw_text)
+            self.native_text.configure(state="disabled")
+        else:
+            self.btn_toggle_view.configure(text="📖 Formatted View")
+            self.markdown_viewer.render(self.markdown_viewer.raw_text, streaming=False)
+
+    def _set_prompt_text(self, text: str):
+        """Sets the transcription text area with preset prompt."""
+        self.txt_transcription.delete("1.0", "end")
+        self.txt_transcription.insert("1.0", text)
+        self._set_status("Loaded preset question")
 
     def _set_status(self, text: str):
         self.status_lbl.configure(text=f"Status: {text}")
@@ -432,12 +508,10 @@ class ParakeetDesktopApp(ctk.CTk):
                 text=f"🔴 Recording: {mins:02d}:{secs:02d}",
                 text_color="#ef4444"
             )
-            # Smooth volume level bounce
             self.volume_bar.set(self.recorder.current_volume)
         else:
             self.volume_bar.set(0.0)
 
-        # Schedule next loop at 50ms
         self.after(50, self._process_ui_queue)
 
     # -----------------------------------------------------------------
@@ -445,7 +519,6 @@ class ParakeetDesktopApp(ctk.CTk):
     # -----------------------------------------------------------------
     def _on_start_recording(self):
         """Handles Start Recording button click."""
-        # Determine device index
         device_str = self.mic_dropdown.get()
         dev_idx = None
         if device_str.startswith("[") and "]" in device_str:
@@ -460,10 +533,10 @@ class ParakeetDesktopApp(ctk.CTk):
             self.btn_stop.configure(state="normal", fg_color="#ef4444")
             self._set_status("Recording audio from microphone...")
         except AudioRecorderError as e:
-            self._set_status(f"Microphone error: {e}")
+            self._set_status(f"Microphone notice: {e}")
             tk.messagebox.showwarning(
                 "Microphone Notice",
-                f"{e}\n\nTip: You can also use 'Load Sample Question' to test without an active mic!"
+                f"{e}\n\nTip: You can also use the preset chips above to test without an active microphone!"
             )
         except Exception as e:
             self._set_status(f"Recording error: {e}")
@@ -475,7 +548,6 @@ class ParakeetDesktopApp(ctk.CTk):
         self.rec_status_lbl.configure(text="Processing audio...", text_color="gray65")
         self._set_status("Transcribing speech with local faster-whisper...")
 
-        # Run transcription in a background thread
         threading.Thread(target=self._transcribe_worker, daemon=True).start()
 
     def _transcribe_worker(self):
@@ -489,7 +561,6 @@ class ParakeetDesktopApp(ctk.CTk):
                 self._ui_queue.put(lambda: self.rec_status_lbl.configure(text="Idle • Ready", text_color="gray65"))
                 return
 
-            # Perform local speech-to-text
             text = self.stt.transcribe_audio(audio_data, sample_rate=16000)
 
             def update_ui():
@@ -509,14 +580,6 @@ class ParakeetDesktopApp(ctk.CTk):
                 self.rec_status_lbl.configure(text="Idle • Ready", text_color="gray65")
             self._ui_queue.put(on_err)
 
-    def _load_next_sample_question(self):
-        """Cycles through pre-configured technical questions for testing."""
-        sample = SAMPLE_QUESTIONS[self._sample_index % len(SAMPLE_QUESTIONS)]
-        self._sample_index += 1
-        self.txt_transcription.delete("1.0", "end")
-        self.txt_transcription.insert("1.0", sample["question"])
-        self._set_status(f"Loaded sample: {sample['title']}")
-
     def _clear_transcription(self):
         """Clears transcription text area."""
         self.txt_transcription.delete("1.0", "end")
@@ -526,7 +589,6 @@ class ParakeetDesktopApp(ctk.CTk):
     # AI Answer Progressive Generation
     # -----------------------------------------------------------------
     def _on_backend_changed(self, value: str):
-        """Updates model options when backend is changed."""
         if "ollama" in value.lower():
             if not self.llm.ollama.is_available():
                 self.llm_status_badge.configure(
@@ -542,19 +604,19 @@ class ParakeetDesktopApp(ctk.CTk):
     def _on_suggest_answer(self):
         """Handles 'Suggest Answer' button click to stream local AI response."""
         prompt = self.txt_transcription.get("1.0", "end").strip()
-        if not prompt or prompt.startswith("Click 'Start Recording'"):
+        if not prompt:
             tk.messagebox.showinfo(
                 "No Question",
-                "Please record audio or enter a question first before clicking 'Suggest Answer'."
+                "Please record audio or select a question first before clicking 'Suggest Answer'."
             )
             return
 
         # Prepare progressive streaming display
-        self.txt_answer.delete("1.0", "end")
-        self.btn_suggest.configure(state="disabled", fg_color="#93c5fd")
+        self.markdown_viewer.clear()
+        self.btn_suggest.configure(state="disabled", fg_color="#818cf8")
         self.btn_stop_ai.configure(state="normal", fg_color="#ef4444")
-        self.lbl_stats.configure(text="Generating response (streaming tokens)...", text_color="#3b82f6")
-        self._set_status("AI is generating progressive answer...")
+        self.lbl_stats.configure(text="Generating response (streaming tokens)...", text_color="#38bdf8")
+        self._set_status("AI is streaming progressive answer in rich Markdown...")
 
         self._stream_token_count = 0
         self._stream_start_time = time.time()
@@ -562,7 +624,6 @@ class ParakeetDesktopApp(ctk.CTk):
         selected_backend = self.backend_dropdown.get()
         selected_model = self.model_dropdown.get()
 
-        # Call LLM engine
         self.llm.start_streaming(
             prompt=prompt,
             on_token=self._on_token_received,
@@ -576,8 +637,7 @@ class ParakeetDesktopApp(ctk.CTk):
         """Thread-safe handler for incoming progressive tokens."""
         def append():
             self._stream_token_count += 1
-            self.txt_answer.insert("end", token)
-            self.txt_answer.see("end")  # Auto-scroll to latest token
+            self.markdown_viewer.append_chunk(token)
 
             # Update live stats
             elapsed = max(0.01, time.time() - self._stream_start_time)
@@ -592,7 +652,8 @@ class ParakeetDesktopApp(ctk.CTk):
     def _on_generation_complete(self):
         """Handler when AI generation finishes successfully."""
         def finish():
-            self.btn_suggest.configure(state="normal", fg_color="#3b82f6")
+            self.markdown_viewer.finish_streaming()
+            self.btn_suggest.configure(state="normal", fg_color="#4f46e5")
             self.btn_stop_ai.configure(state="disabled", fg_color="#71717a")
             elapsed = max(0.01, time.time() - self._stream_start_time)
             speed = self._stream_token_count / elapsed
@@ -607,10 +668,11 @@ class ParakeetDesktopApp(ctk.CTk):
     def _on_generation_error(self, err_msg: str):
         """Handler for generation errors."""
         def err():
-            self.btn_suggest.configure(state="normal", fg_color="#3b82f6")
+            self.markdown_viewer.finish_streaming()
+            self.btn_suggest.configure(state="normal", fg_color="#4f46e5")
             self.btn_stop_ai.configure(state="disabled", fg_color="#71717a")
             self.lbl_stats.configure(text="⚠️ Generation interrupted / error", text_color="#ef4444")
-            self.txt_answer.insert("end", f"\n\n[Error]: {err_msg}")
+            self.markdown_viewer.append_chunk(f"\n\n> **[Error]**: {err_msg}\n")
             self._set_status(f"Generation error: {err_msg}")
 
         self._ui_queue.put(err)
@@ -618,14 +680,15 @@ class ParakeetDesktopApp(ctk.CTk):
     def _on_stop_generation(self):
         """Cancels streaming generation."""
         self.llm.stop()
-        self.btn_suggest.configure(state="normal", fg_color="#3b82f6")
+        self.markdown_viewer.finish_streaming()
+        self.btn_suggest.configure(state="normal", fg_color="#4f46e5")
         self.btn_stop_ai.configure(state="disabled", fg_color="#71717a")
         self.lbl_stats.configure(text="Generation stopped by user.", text_color="gray60")
         self._set_status("Generation stopped.")
 
     def _copy_answer_to_clipboard(self):
         """Copies the generated answer to system clipboard."""
-        answer = self.txt_answer.get("1.0", "end").strip()
+        answer = self.markdown_viewer.raw_text.strip()
         if answer:
             self.clipboard_clear()
             self.clipboard_append(answer)
