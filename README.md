@@ -1,15 +1,13 @@
-# 🦜 Parakeet AI — Desktop Prototype
+# Parakeet AI — Desktop Prototype
 
 > **Candidate Name:** Rupali Goyal  
 > **GitHub:** [@93527Rupali38898](https://github.com/93527Rupali38898)  
 > **Repository:** [https://github.com/93527Rupali38898/parakeet-ai-copilot](https://github.com/93527Rupali38898/parakeet-ai-copilot)  
-> **Submission Deadline:** 04 November, 2026  
-> **Target Platforms:** Windows & macOS  
 > **Core Technologies:** Python, CustomTkinter, Faster-Whisper, Ollama / Hugging Face Local Transformers
 
 ---
 
-## 🌟 Overview
+## Overview
 
 This project is a desktop application prototype inspired by **Parakeet AI**. It provides an intelligent, real-time desktop copilot that:
 
@@ -22,7 +20,7 @@ This project is a desktop application prototype inspired by **Parakeet AI**. It 
 
 ---
 
-## 🏗️ Architecture & Workflow
+## Architecture & Workflow
 
 ```
        +---------------------------------------------+
@@ -67,7 +65,7 @@ This project is a desktop application prototype inspired by **Parakeet AI**. It 
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
 * **Parakeet-Inspired Modern UI**: Designed with `customtkinter` featuring Dark/Light theme toggling, rounded visual cards, and responsive layout.
 * **Live Audio Visualizer**: Real-time volume level meter reflecting microphone activity during recording.
@@ -79,7 +77,7 @@ This project is a desktop application prototype inspired by **Parakeet AI**. It 
 
 ---
 
-## 🛠️ Prerequisites
+## Prerequisites
 
 * **Python:** Python 3.10, 3.11, or 3.12 installed.
 * **Microphone:** Standard built-in microphone, USB headset, or Bluetooth hands-free audio.
@@ -87,7 +85,7 @@ This project is a desktop application prototype inspired by **Parakeet AI**. It 
 
 ---
 
-## 📦 Installation
+## Installation
 
 ### 1. Clone the repository & navigate to project folder
 ```bash
@@ -115,7 +113,7 @@ pip install -r requirements.txt
 
 ---
 
-## 🚦 Running the Application
+## Running the Application
 
 ### Option A: One-Click Launchers
 * **Windows:** Double-click `run.bat`
@@ -134,7 +132,7 @@ python main.py --backend ollama --model llama3.2
 
 ---
 
-## 🦙 Using Ollama for Local LLM (Optional)
+## Using Ollama for Local LLM (Optional)
 
 If you have Ollama installed, the app can automatically detect and stream from your local Ollama models:
 
@@ -154,7 +152,7 @@ If you have Ollama installed, the app can automatically detect and stream from y
 
 ---
 
-## 🧪 Automated Testing
+## Automated Testing
 
 A comprehensive integration test suite is included:
 
@@ -170,7 +168,7 @@ This verifies:
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 parakeet-ai-copilot/
@@ -190,9 +188,8 @@ parakeet-ai-copilot/
 
 ---
 
-## 👤 Author Information
+## Author Information
 
 * **Candidate:** Rupali Goyal
 * **GitHub Profile:** [@93527Rupali38898](https://github.com/93527Rupali38898)
 * **Repository:** [https://github.com/93527Rupali38898/parakeet-ai-copilot](https://github.com/93527Rupali38898/parakeet-ai-copilot)
-* **Role:** Full Stack Development Internship 
