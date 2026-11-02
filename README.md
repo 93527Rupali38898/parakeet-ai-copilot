@@ -1,25 +1,28 @@
-# Parakeet AI — Desktop Prototype
+# 🦜 Parakeet AI — Desktop Prototype
 
 > **Candidate Name:** Rupali Goyal  
+> **GitHub:** [@93527Rupali38898](https://github.com/93527Rupali38898)  
+> **Repository:** [https://github.com/93527Rupali38898/parakeet-ai-copilot](https://github.com/93527Rupali38898/parakeet-ai-copilot)  
 > **Submission Deadline:** 04 November, 2026  
 > **Target Platforms:** Windows & macOS  
 > **Core Technologies:** Python, CustomTkinter, Faster-Whisper, Ollama / Hugging Face Local Transformers
 
 ---
 
-## Overview
+## 🌟 Overview
 
 This project is a desktop application prototype inspired by **Parakeet AI**. It provides an intelligent, real-time desktop copilot that:
 
 1. **Captures microphone audio** with clean, responsive **Start** and **Stop** buttons.
 2. **Transcribes spoken speech locally** using a quantized, high-efficiency Whisper speech-to-text model (`faster-whisper-tiny` with `int8` quantization running on CPU/GPU).
 3. **Generates contextual answers** when the user clicks **“Suggest Answer”**.
-4. **Displays the AI response progressively** (streaming token-by-token in real time) with live metrics (tokens streamed, generation speed, elapsed latency).
-5. **Runs 100% locally** without external paid cloud APIs, supporting **Ollama** runtimes (e.g., `llama3.2`, `mistral`, `phi3`), **Local Transformers**, and an instant **Offline Fast Engine** for zero-setup evaluation.
+4. **Displays the AI answer progressively** (streaming token-by-token in real time) with live metrics (tokens streamed, generation speed, elapsed latency).
+5. **Renders formatted Markdown in real time** without raw asterisks or hashtags, with a toggle for visual or raw views.
+6. **Runs 100% locally** without external paid cloud APIs, supporting **Ollama** runtimes (e.g., `llama3.2`, `mistral`, `phi3`), **Local Transformers**, and an instant **Offline Fast Engine** for zero-setup evaluation.
 
 ---
 
-## Architecture & Workflow
+## 🏗️ Architecture & Workflow
 
 ```
        +---------------------------------------------+
@@ -44,7 +47,7 @@ This project is a desktop application prototype inspired by **Parakeet AI**. It 
                               |
             Transcribed Question in Text Area
                               |
-                    [  Suggest Answer ]
+                    [ ✨ Suggest Answer ]
                               |
               +---------------+---------------+
               |        llm_engine.py          |
@@ -53,24 +56,30 @@ This project is a desktop application prototype inspired by **Parakeet AI**. It 
               |   - Progressive Token Stream  |
               +---------------+---------------+
                               |
-           Progressive Token-by-Token Streaming
-           UI Autoscroll + Typing Cursor Effect
+              +---------------+---------------+
+              |      markdown_viewer.py       |
+              |   - Real-Time Rich Markdown   |
+              |   - Headings, Bold, Lists     |
+              +---------------+---------------+
+                              |
+            Progressive Streaming Rendered UI
 ```
 
 ---
 
-## Key Features
+## 🚀 Key Features
 
 * **Parakeet-Inspired Modern UI**: Designed with `customtkinter` featuring Dark/Light theme toggling, rounded visual cards, and responsive layout.
 * **Live Audio Visualizer**: Real-time volume level meter reflecting microphone activity during recording.
 * **Editable Transcription**: Users can review or fine-tune the transcribed question before submitting it to the AI.
-* **Zero-Mic Sample Testing**: Built-in `Load Sample Question` button allows testing technical, system design, and behavioral questions without needing a physical microphone or speaking aloud.
+* **Quick Prompt Chips**: One-click test chips (`🐍 Learn Python`, `🤖 ML Concepts`, `🏗️ System Design`, `🔍 Attention`, `🐞 Debug Bug`) for instant evaluation even without a microphone.
+* **Real-Time Markdown Rendering**: Formats headings, bold text, lists, and code blocks cleanly on the screen without messy raw syntax.
 * **True Progressive Streaming**: Answers stream incrementally chunk-by-chunk using a thread-safe message queue, ensuring zero UI freezing.
 * **Local STT & LLM**: No cloud subscription or internet connectivity required during inference.
 
 ---
 
-## Prerequisites
+## 🛠️ Prerequisites
 
 * **Python:** Python 3.10, 3.11, or 3.12 installed.
 * **Microphone:** Standard built-in microphone, USB headset, or Bluetooth hands-free audio.
@@ -78,12 +87,12 @@ This project is a desktop application prototype inspired by **Parakeet AI**. It 
 
 ---
 
-## Installation
+## 📦 Installation
 
 ### 1. Clone the repository & navigate to project folder
 ```bash
-git clone <repo-url>
-cd Lacritz
+git clone https://github.com/93527Rupali38898/parakeet-ai-copilot.git
+cd parakeet-ai-copilot
 ```
 
 ### 2. Create and activate a virtual environment (recommended)
@@ -106,7 +115,7 @@ pip install -r requirements.txt
 
 ---
 
-## Running the Application
+## 🚦 Running the Application
 
 ### Option A: One-Click Launchers
 * **Windows:** Double-click `run.bat`
@@ -125,7 +134,7 @@ python main.py --backend ollama --model llama3.2
 
 ---
 
-## Using Ollama for Local LLM (Optional)
+## 🦙 Using Ollama for Local LLM (Optional)
 
 If you have Ollama installed, the app can automatically detect and stream from your local Ollama models:
 
@@ -145,7 +154,7 @@ If you have Ollama installed, the app can automatically detect and stream from y
 
 ---
 
-## Automated Testing
+## 🧪 Automated Testing
 
 A comprehensive integration test suite is included:
 
@@ -161,13 +170,14 @@ This verifies:
 
 ---
 
-## Project Structure
+## 📂 Project Structure
 
 ```
-Lacritz/
+parakeet-ai-copilot/
 ├── audio_recorder.py   # Microphone capture, volume level calculation, and buffers
 ├── stt_engine.py       # Local Faster-Whisper speech-to-text service & sample prompts
 ├── llm_engine.py       # Local LLM backends (Ollama, Transformers, Offline Fast Engine)
+├── markdown_viewer.py  # Real-time rich Markdown parser & styled renderer
 ├── gui.py              # CustomTkinter GUI layout, progressive streaming, and events
 ├── main.py             # Application launcher and argument parser
 ├── test_pipeline.py    # Unit & integration verification test suite
@@ -180,7 +190,11 @@ Lacritz/
 
 ---
 
-## Author
+## 👤 Author Information
 
-* **Author:** Rupali Goyal
-
+* **Candidate:** Rupali Goyal
+* **GitHub Profile:** [@93527Rupali38898](https://github.com/93527Rupali38898)
+* **Repository:** [https://github.com/93527Rupali38898/parakeet-ai-copilot](https://github.com/93527Rupali38898/parakeet-ai-copilot)
+* **Role:** Full Stack Development Internship Applicant (Lacritz.ai)
+* **Evaluator:** Balaji Babuji Kaveripakkam
+* **Submission Deadline:** 04 November, 2026
