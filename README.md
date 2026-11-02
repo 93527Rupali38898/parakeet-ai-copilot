@@ -195,6 +195,4 @@ parakeet-ai-copilot/
 * **Candidate:** Rupali Goyal
 * **GitHub Profile:** [@93527Rupali38898](https://github.com/93527Rupali38898)
 * **Repository:** [https://github.com/93527Rupali38898/parakeet-ai-copilot](https://github.com/93527Rupali38898/parakeet-ai-copilot)
-* **Role:** Full Stack Development Internship Applicant (Lacritz.ai)
-* **Evaluator:** Balaji Babuji Kaveripakkam
-* **Submission Deadline:** 04 November, 2026
+* **Role:** Full Stack Development Internship 
